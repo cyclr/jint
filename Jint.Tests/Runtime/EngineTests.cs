@@ -1,14 +1,16 @@
-﻿using System;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using Esprima;
+﻿using Esprima;
 using Esprima.Ast;
 using Jint.Native;
 using Jint.Native.Array;
 using Jint.Native.Object;
 using Jint.Runtime;
 using Jint.Runtime.Debugger;
+using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
 using Xunit;
 
 namespace Jint.Tests.Runtime
@@ -2663,8 +2665,8 @@ function output(x) {
 };
 ";
             _engine.Execute(program);
-            var result1 = (ObjectInstance) _engine.Execute("output(x1)").GetCompletionValue();
-            var result2 = (ObjectInstance) _engine.Execute("output(x2)").GetCompletionValue();
+            var result1 = (ObjectInstance)_engine.Execute("output(x1)").GetCompletionValue();
+            var result2 = (ObjectInstance)_engine.Execute("output(x2)").GetCompletionValue();
 
             Assert.Equal(9, TypeConverter.ToNumber(result1.Get("TestDictionarySum1")));
             Assert.Equal(9, TypeConverter.ToNumber(result1.Get("TestDictionarySum2")));
@@ -2714,13 +2716,13 @@ function output(x) {
                 var r = [...arr2, ...arr1];
             ");
 
-            var arrayInstance = (ArrayInstance) _engine.GetValue("r");
+            var arrayInstance = (ArrayInstance)_engine.GetValue("r");
             Assert.Equal(arrayInstance[0], 3);
             Assert.Equal(arrayInstance[1], 4);
             Assert.Equal(arrayInstance[2], 1);
             Assert.Equal(arrayInstance[3], 2);
 
-            arrayInstance = (ArrayInstance) _engine.GetValue("s");
+            arrayInstance = (ArrayInstance)_engine.GetValue("s");
             Assert.Equal(arrayInstance[0], 'a');
             Assert.Equal(arrayInstance[1], 'b');
             Assert.Equal(arrayInstance[2], 'c');
@@ -2786,6 +2788,74 @@ x.test = {
         {
             public string Name { get; set; }
             public Func<int, int, int> Init { get; set; }
+        }
+
+        [Fact]
+        public void ShouldCreateObjectProperty()
+        {
+            var engine = new Engine();
+            engine.Execute("var o = { a: 1 }");
+
+            engine.Execute("o.b = 2");
+            dynamic o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(2, ((IDictionary<string, object>)o).Count);
+            Assert.Equal(1, o.a);
+            Assert.Equal(2, o.b);
+
+            engine.Execute("o.c = '3'");
+            o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(3, ((IDictionary<string, object>)o).Count);
+            Assert.Equal(1, o.a);
+            Assert.Equal(2, o.b);
+            Assert.Equal("3", o.c);
+        }
+
+        [Fact]
+        public void ShouldUpdateObjectProperty()
+        {
+            var engine = new Engine();
+            engine.Execute("var o = { a: 1, b: 2 }");
+
+            engine.Execute("o.a = 10");
+            dynamic o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(2, ((IDictionary<string, object>)o).Count);
+            Assert.Equal(10, o.a);
+            Assert.Equal(2, o.b);
+
+            engine.Execute("o.b = 'string'");
+            o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(2, ((IDictionary<string, object>)o).Count);
+            Assert.Equal(10, o.a);
+            Assert.Equal("string", o.b);
+        }
+
+        [Fact]
+        public void ShouldRemoveObjectProperty()
+        {
+            var engine = new Engine();
+            engine.Execute("var o = { a: 1, b: 2, c: '3' }");
+
+            engine.Execute("delete o.a");
+            dynamic o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(2, ((IDictionary<string, object>)o).Count);
+            Assert.Equal(2, o.b);
+            Assert.Equal("3", o.c);
+
+            engine.Execute("delete o.c");
+            o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(1, ((IDictionary<string, object>)o).Count);
+            Assert.Equal(2, o.b);
+
+            engine.Execute("delete o.b");
+            o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Empty((IDictionary<string, object>)o);
         }
     }
 }
