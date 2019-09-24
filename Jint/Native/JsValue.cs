@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.Contracts;
-using System.Runtime.CompilerServices;
-using System.Threading;
+﻿using Esprima;
+using Esprima.Ast;
 using Jint.Native.Array;
 using Jint.Native.Date;
 using Jint.Native.Iterator;
@@ -13,6 +9,15 @@ using Jint.Native.Symbol;
 using Jint.Runtime;
 using Jint.Runtime.Descriptors;
 using Jint.Runtime.Interop;
+using Jint.Runtime.Interpreter.Expressions;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Contracts;
+using System.Dynamic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Jint.Native
 {
@@ -163,7 +168,7 @@ namespace Jint.Native
 
             return iterator;
         }
-        
+
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool TryGetIterator(Engine engine, out IIterator iterator)
@@ -346,16 +351,45 @@ namespace Jint.Native
                 return JsNumber.Create(System.Convert.ToInt32(value));
             }
 
-            // if no known type could be guessed, wrap it as an ObjectInstance
+            // use custom wrap object handler if it exists
             var h = engine.Options._WrapObjectHandler;
-            ObjectInstance o = h != null ? h(value) : null;
-            return o ?? new ObjectWrapper(engine, value);
+            var o = h?.Invoke(value);
+            if (!(o is null))
+                return o;
+
+            // parse known object and list types to JintExpression
+            if (value is IDictionary<string, object> ||
+                value is IList<IDictionary<string, object>> || value is IList<ExpandoObject>)
+            {
+                var jsonCode = JsonConvert.SerializeObject(value);
+                var parser = new JavaScriptParser(jsonCode, Engine.DefaultParserOptions);
+                var expression = parser.ParseExpression();
+                JintExpression jintExpression;
+                switch (expression)
+                {
+                    case ObjectExpression objectExpression:
+                        jintExpression = new JintObjectExpression(engine, objectExpression);
+                        break;
+
+                    case ArrayExpression arrayExpression:
+                        jintExpression = new JintArrayExpression(engine, arrayExpression);
+                        break;
+
+                    default:
+                        throw new NotImplementedException();
+                }
+
+                return jintExpression.GetValue();
+            }
+
+            // if no known type could be guessed, wrap it as an ObjectInstance
+            return new ObjectWrapper(engine, value);
         }
 
         private static JsValue Convert(Engine e, object v)
         {
-            var array = (System.Array) v;
-            var arrayLength = (uint) array.Length;
+            var array = (System.Array)v;
+            var arrayLength = (uint)array.Length;
 
             var jsArray = new ArrayInstance(e, arrayLength);
             jsArray.Prototype = e.Array.PrototypeObject;
@@ -494,7 +528,7 @@ namespace Jint.Native
             {
                 return Null;
             }
-                
+
             return JsString.Create(value);
         }
 
@@ -538,13 +572,13 @@ namespace Jint.Native
                         Value = "null";
                         break;
                     case Types.Boolean:
-                        Value = ((JsBoolean) value)._value + " (bool)";
+                        Value = ((JsBoolean)value)._value + " (bool)";
                         break;
                     case Types.String:
                         Value = value.AsStringWithoutTypeCheck() + " (string)";
                         break;
                     case Types.Number:
-                        Value = ((JsNumber) value)._value + " (number)";
+                        Value = ((JsNumber)value)._value + " (number)";
                         break;
                     case Types.Object:
                         Value = value.AsObject().GetType().Name;
