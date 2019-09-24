@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Esprima;
+﻿using Esprima;
 using Esprima.Ast;
 using Jint.Native;
 using Jint.Native.Array;
@@ -30,12 +27,15 @@ using Jint.Runtime.Environments;
 using Jint.Runtime.Interop;
 using Jint.Runtime.Interpreter;
 using Jint.Runtime.References;
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Jint
 {
     public class Engine
     {
-        private static readonly ParserOptions DefaultParserOptions = new ParserOptions
+        public static readonly ParserOptions DefaultParserOptions = new ParserOptions
         {
             AdaptRegexp = true,
             Tolerant = true,
@@ -154,7 +154,7 @@ namespace Jint
 
             if (methodInfo != null)
             {
-                GetAllocatedBytesForCurrentThread =  (Func<long>)Delegate.CreateDelegate(typeof(Func<long>), null, methodInfo);
+                GetAllocatedBytesForCurrentThread = (Func<long>)Delegate.CreateDelegate(typeof(Func<long>), null, methodInfo);
             }
         }
 
@@ -210,7 +210,7 @@ namespace Jint
             _maxStatements = Options._MaxStatements;
             _referenceResolver = Options.ReferenceResolver;
             _memoryLimit = Options._MemoryLimit;
-            _runBeforeStatementChecks = (_maxStatements > 0 &&_maxStatements < int.MaxValue)
+            _runBeforeStatementChecks = (_maxStatements > 0 && _maxStatements < int.MaxValue)
                                         || Options._TimeoutInterval.Ticks > 0
                                         || _memoryLimit > 0
                                         || _isDebugMode;
@@ -314,7 +314,7 @@ namespace Jint
 
         public Engine SetValue(in Key name, string value)
         {
-            return SetValue(name, (JsValue) value);
+            return SetValue(name, (JsValue)value);
         }
 
         public Engine SetValue(in Key name, double value)
@@ -488,7 +488,7 @@ namespace Jint
 
             if (!(value is Reference reference))
             {
-                return ((Completion) value).Value;
+                return ((Completion)value).Value;
             }
 
             return GetValue(reference, returnReferenceToPool);
@@ -549,7 +549,7 @@ namespace Jint
                         return Undefined.Instance;
                     }
 
-                    var callable = (ICallable) getter.AsObject();
+                    var callable = (ICallable)getter.AsObject();
                     return callable.Call(baseValue, Arguments.Empty);
                 }
             }
@@ -589,7 +589,7 @@ namespace Jint
                 var baseValue = reference._baseValue;
                 if (reference._baseValue._type == Types.Object || reference._baseValue._type == Types.None)
                 {
-                    ((ObjectInstance) baseValue).Put(referencedName, value, reference._strict);
+                    ((ObjectInstance)baseValue).Put(referencedName, value, reference._strict);
                 }
                 else
                 {
@@ -599,7 +599,7 @@ namespace Jint
             else
             {
                 var baseValue = reference._baseValue;
-                ((EnvironmentRecord) baseValue).SetMutableBinding(referencedName, value, reference._strict);
+                ((EnvironmentRecord)baseValue).SetMutableBinding(referencedName, value, reference._strict);
             }
         }
 
