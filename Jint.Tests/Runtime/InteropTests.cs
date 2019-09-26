@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using Jint.Native;
+﻿using Jint.Native;
 using Jint.Native.Array;
 using Jint.Native.Object;
 using Jint.Runtime.Interop;
 using Jint.Tests.Runtime.Converters;
 using Jint.Tests.Runtime.Domain;
 using Shapes;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using Xunit;
 
 namespace Jint.Tests.Runtime
@@ -468,7 +468,7 @@ namespace Jint.Tests.Runtime
         [Fact]
         public void PocosCanReturnObjectInstanceDirectly()
         {
-            var x = new ObjectInstance(_engine) { Extensible = true};
+            var x = new ObjectInstance(_engine) { Extensible = true };
             x.Put("foo", new JsString("bar"), false);
 
             var o = new
@@ -591,7 +591,7 @@ namespace Jint.Tests.Runtime
         [Fact]
         public void CanUseTrim()
         {
-            var p = new Person { Name = "Mickey Mouse "};
+            var p = new Person { Name = "Mickey Mouse " };
             _engine.SetValue("p", p);
 
             RunTest(@"
@@ -663,9 +663,9 @@ namespace Jint.Tests.Runtime
 
             Assert.True(parts.GetType().IsArray);
             Assert.Equal(3, ((object[])parts).Length);
-            Assert.Equal(2d, ((object[])parts)[0]);
-            Assert.Equal(4d, ((object[])parts)[1]);
-            Assert.Equal(6d, ((object[])parts)[2]);
+            Assert.Equal(2, ((object[])parts)[0]);
+            Assert.Equal(4, ((object[])parts)[1]);
+            Assert.Equal(6, ((object[])parts)[2]);
         }
 
         [Fact]
@@ -679,9 +679,9 @@ namespace Jint.Tests.Runtime
 
             Assert.True(parts.GetType().IsArray);
             Assert.Equal(3, ((object[])parts).Length);
-            Assert.Equal(2d, ((object[])parts)[0]);
-            Assert.Equal(4d, ((object[])parts)[1]);
-            Assert.Equal(6d, ((object[])parts)[2]);
+            Assert.Equal(2, ((object[])parts)[0]);
+            Assert.Equal(4, ((object[])parts)[1]);
+            Assert.Equal(6, ((object[])parts)[2]);
         }
 
         [Fact]
@@ -771,7 +771,7 @@ namespace Jint.Tests.Runtime
 
             var dic = (IDictionary<string, object>)result.ToObject();
 
-            Assert.Equal(1d, dic["a"]);
+            Assert.Equal(1, dic["a"]);
             Assert.Equal("foo", dic["b"]);
 
         }
@@ -1451,7 +1451,7 @@ namespace Jint.Tests.Runtime
         public void ShouldReturnUndefinedProperty()
         {
             _engine.SetValue("uo", new { foo = "bar" });
-            _engine.SetValue("ud", new Dictionary<string, object> { {"foo", "bar"} });
+            _engine.SetValue("ud", new Dictionary<string, object> { { "foo", "bar" } });
             _engine.SetValue("ul", new List<string> { "foo", "bar" });
 
             RunTest(@"
@@ -1481,7 +1481,7 @@ namespace Jint.Tests.Runtime
         [Fact]
         public void ShouldImportNamespaceNestedType()
         {
-          RunTest(@"
+            RunTest(@"
                 var shapes = importNamespace('Shapes.Circle');
                 var kinds = shapes.Kind;
                 assert(kinds.Unit === 0);
@@ -1493,7 +1493,7 @@ namespace Jint.Tests.Runtime
         [Fact]
         public void ShouldImportNamespaceNestedNestedType()
         {
-          RunTest(@"
+            RunTest(@"
                 var meta = importNamespace('Shapes.Circle.Meta');
                 var usages = meta.Usage;
                 assert(usages.Public === 0);
@@ -1839,7 +1839,7 @@ namespace Jint.Tests.Runtime
             Assert.Equal(engine.Invoke("throwException3").AsString(), exceptionMessage);
             Assert.Throws<ArgumentNullException>(() => engine.Invoke("throwException4"));
         }
-        
+
         [Fact]
         public void ArrayFromShouldConvertListToArrayLike()
         {
@@ -1864,11 +1864,11 @@ namespace Jint.Tests.Runtime
                 assert(arr[1].Name === 'Mika');
             ");
         }
-        
+
         [Fact]
         public void ArrayFromShouldConvertArrayToArrayLike()
         {
-            var list = new []
+            var list = new[]
             {
                 new Person {Name = "Mike"},
                 new Person {Name = "Mika"}
@@ -1889,16 +1889,16 @@ namespace Jint.Tests.Runtime
                 assert(arr[1].Name === 'Mika');
             ");
         }
-        
+
         [Fact]
         public void ArrayFromShouldConvertIEnumerable()
         {
-            var enumerable = new []
+            var enumerable = new[]
             {
                 new Person {Name = "Mike"},
                 new Person {Name = "Mika"}
             }.Select(x => x);
-            
+
             _engine.SetValue("a", enumerable);
 
             RunTest(@"
@@ -1925,6 +1925,6 @@ namespace Jint.Tests.Runtime
             engine.Execute("P.Name = 'b';");
             engine.Execute("P.Name += 'c';");
             Assert.Equal("bc", p.Name);
-        } 
+        }
     }
 }

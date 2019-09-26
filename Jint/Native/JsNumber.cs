@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Jint.Runtime;
+using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using Jint.Runtime;
 
 namespace Jint.Native
 {
@@ -24,7 +24,7 @@ namespace Jint.Native
         private static readonly JsNumber[] _intToJsValue = new JsNumber[NumbersMax];
 
         internal static readonly JsNumber DoubleNaN = new JsNumber(double.NaN);
-        internal static readonly JsNumber DoubleNegativeOne = new JsNumber((double) -1);
+        internal static readonly JsNumber DoubleNegativeOne = new JsNumber((double)-1);
         internal static readonly JsNumber DoublePositiveInfinity = new JsNumber(double.PositiveInfinity);
         internal static readonly JsNumber DoubleNegativeInfinity = new JsNumber(double.NegativeInfinity);
         private static readonly JsNumber IntegerNegativeOne = new JsNumber(-1);
@@ -38,7 +38,7 @@ namespace Jint.Native
             for (int i = 0; i < NumbersMax; i++)
             {
                 _intToJsValue[i] = new JsNumber(i);
-                _doubleToJsValue[i] = new JsNumber((double) i);
+                _doubleToJsValue[i] = new JsNumber((double)i);
             }
         }
 
@@ -59,6 +59,8 @@ namespace Jint.Native
 
         public override object ToObject()
         {
+            if (System.Math.Abs(_value % 1) <= DoubleIsIntegerTolerance)
+                return (int)_value;
             return _value;
         }
 
@@ -71,7 +73,7 @@ namespace Jint.Native
                 && value < temp.Length
                 && System.Math.Abs(value % 1) <= DoubleIsIntegerTolerance)
             {
-                return temp[(uint) value];
+                return temp[(uint)value];
             }
 
             if (value == -1)
@@ -111,7 +113,7 @@ namespace Jint.Native
         internal static JsNumber Create(int value)
         {
             var temp = _intToJsValue;
-            if ((uint) value < (uint) temp.Length)
+            if ((uint)value < (uint)temp.Length)
             {
                 return temp[value];
             }
@@ -127,7 +129,7 @@ namespace Jint.Native
         internal static JsNumber Create(uint value)
         {
             var temp = _intToJsValue;
-            if (value < (uint) temp.Length)
+            if (value < (uint)temp.Length)
             {
                 return temp[value];
             }
@@ -137,7 +139,7 @@ namespace Jint.Native
 
         internal static JsNumber Create(ulong value)
         {
-            if (value < (ulong) _intToJsValue.Length)
+            if (value < (ulong)_intToJsValue.Length)
             {
                 return _intToJsValue[value];
             }

@@ -33,7 +33,7 @@ namespace Jint.Tests.Runtime
                 .GetCompletionValue()
                 .ToObject();
 
-            Assert.Equal(9d, square);
+            Assert.Equal(9, square);
         }
     }
 }

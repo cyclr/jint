@@ -57,7 +57,8 @@ namespace Jint.Tests.Runtime
         }
 
         [Theory]
-        [InlineData(42d, "42")]
+        [InlineData(42, "42")]
+        [InlineData(42.1, "42.1")]
         [InlineData("Hello", "'Hello'")]
         public void ShouldInterpretLiterals(object expected, string source)
         {
@@ -80,16 +81,16 @@ namespace Jint.Tests.Runtime
         }
 
         [Theory]
-        [InlineData(4d, "1 + 3")]
-        [InlineData(-2d, "1 - 3")]
-        [InlineData(3d, "1 * 3")]
-        [InlineData(2d, "6 / 3")]
-        [InlineData(9d, "15 & 9")]
-        [InlineData(15d, "15 | 9")]
-        [InlineData(6d, "15 ^ 9")]
-        [InlineData(36d, "9 << 2")]
-        [InlineData(2d, "9 >> 2")]
-        [InlineData(4d, "19 >>> 2")]
+        [InlineData(4, "1 + 3")]
+        [InlineData(-2, "1 - 3")]
+        [InlineData(3, "1 * 3")]
+        [InlineData(2, "6 / 3")]
+        [InlineData(9, "15 & 9")]
+        [InlineData(15, "15 | 9")]
+        [InlineData(6, "15 ^ 9")]
+        [InlineData(36, "9 << 2")]
+        [InlineData(2, "9 >> 2")]
+        [InlineData(4, "19 >>> 2")]
         public void ShouldInterpretBinaryExpression(object expected, string source)
         {
             var engine = new Engine();
@@ -99,8 +100,8 @@ namespace Jint.Tests.Runtime
         }
 
         [Theory]
-        [InlineData(-59d, "~58")]
-        [InlineData(58d, "~~58")]
+        [InlineData(-59, "~58")]
+        [InlineData(58, "~~58")]
         public void ShouldInterpretUnaryExpression(object expected, string source)
         {
             var engine = new Engine();
@@ -704,8 +705,8 @@ namespace Jint.Tests.Runtime
         [InlineData(double.NaN, "parseInt(undefined)")]
         [InlineData(double.NaN, "parseInt(new Boolean(true))")]
         [InlineData(double.NaN, "parseInt(Infinity)")]
-        [InlineData(-1d, "parseInt(-1)")]
-        [InlineData(-1d, "parseInt('-1')")]
+        [InlineData(-1, "parseInt(-1)")]
+        [InlineData(-1, "parseInt('-1')")]
         public void ShouldEvaluateParseInt(object expected, string source)
         {
             var engine = new Engine();
@@ -2409,7 +2410,7 @@ var prep = function (fn) { fn(); };
         //[InlineData("new Date(1969,0,1,19,45,30,500).getMilliseconds()", 500)]
         //[InlineData("new Date(1970,0,1,19,45,30,500).getMilliseconds()", 500)]
         //[InlineData("new Date(1971,0,1,19,45,30,500).getMilliseconds()", 500)]
-        public void ShouldExtractDateParts(string source, double expected)
+        public void ShouldExtractDateParts(string source, int expected)
         {
             var engine = new Engine();
             var result = engine.Execute(source).GetCompletionValue().ToObject();
