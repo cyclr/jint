@@ -2955,5 +2955,22 @@ return JSON.stringify(o);").GetCompletionValue().ToObject();
             }));
             RunAsserts();
         }
+
+        [Fact]
+        public void ShouldThrowExceptionFromFunction()
+        {
+            var engine = new Engine(options => options
+                .LimitRecursion(100)
+            );
+            engine.Execute(@"var object = { 'a': 1 };
+
+function getKeys() {
+    Object.keys(object).forEach(function (key) {
+        throw key;
+    });
+}");
+
+            Assert.Throws<JavaScriptException>(() => engine.Execute("getKeys()"));
+        }
     }
 }

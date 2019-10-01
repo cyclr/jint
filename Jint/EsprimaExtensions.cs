@@ -1,9 +1,9 @@
-using System;
-using System.Runtime.CompilerServices;
 using Esprima.Ast;
 using Jint.Native.Symbol;
 using Jint.Runtime;
 using Jint.Runtime.Interpreter.Expressions;
+using System;
+using System.Runtime.CompilerServices;
 
 namespace Jint
 {
@@ -41,7 +41,8 @@ namespace Jint
 
             if (expression.Type == Nodes.CallExpression
                 || expression.Type == Nodes.BinaryExpression
-                || expression.Type == Nodes.UpdateExpression)
+                || expression.Type == Nodes.UpdateExpression
+                || expression.Type == Nodes.FunctionExpression)
             {
                 return Convert.ToString(JintExpression.Build(engine, expression).GetValue());
             }
