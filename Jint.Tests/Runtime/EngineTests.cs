@@ -59,6 +59,8 @@ namespace Jint.Tests.Runtime
         [Theory]
         [InlineData(42, "42")]
         [InlineData(42.1, "42.1")]
+        [InlineData(123456789012d, "123456789012")]
+        [InlineData(-123456789012d, "-123456789012")]
         [InlineData("Hello", "'Hello'")]
         public void ShouldInterpretLiterals(object expected, string source)
         {

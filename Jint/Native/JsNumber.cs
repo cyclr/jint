@@ -59,7 +59,9 @@ namespace Jint.Native
 
         public override object ToObject()
         {
-            if (System.Math.Abs(_value % 1) <= DoubleIsIntegerTolerance)
+            if (System.Math.Abs(_value % 1) <= DoubleIsIntegerTolerance
+               && _value >= int.MinValue
+               && _value <= int.MaxValue)
                 return (int)_value;
             return _value;
         }
