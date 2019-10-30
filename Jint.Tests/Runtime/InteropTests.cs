@@ -379,7 +379,7 @@ namespace Jint.Tests.Runtime
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "Incompatible with Cyclr script engine design")]
         public void CanUseIndexOnCollection()
         {
             var collection = new System.Collections.ObjectModel.Collection<string>();
@@ -397,7 +397,7 @@ namespace Jint.Tests.Runtime
             Assert.Equal("Donald Duck", collection[1]);
         }
 
-        [Fact]
+        [Fact(Skip = "Incompatible with Cyclr script engine design")]
         public void CanUseIndexOnList()
         {
             var list = new List<object>(2);
@@ -891,7 +891,7 @@ namespace Jint.Tests.Runtime
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "Incompatible with Cyclr script engine design")]
         public void ShouldExecuteActionCallbackOnEventChanged()
         {
             var collection = new System.Collections.ObjectModel.ObservableCollection<string>();
@@ -1131,7 +1131,7 @@ namespace Jint.Tests.Runtime
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "Incompatible with Cyclr script engine design")]
         public void ShouldCreateGenericType()
         {
             RunTest(@"

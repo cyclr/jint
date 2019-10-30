@@ -12,10 +12,10 @@ using Jint.Runtime.Interop;
 using Jint.Runtime.Interpreter.Expressions;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
-using System.Dynamic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -358,8 +358,7 @@ namespace Jint.Native
                 return o;
 
             // parse known object and list types to JintExpression
-            if (value is IDictionary<string, object> ||
-                value is IList<IDictionary<string, object>> || value is IList<ExpandoObject>)
+            if (value is IDictionary<string, object> || value is IList)
             {
                 var jsonCode = JsonConvert.SerializeObject(value);
                 var parser = new JavaScriptParser(jsonCode, Engine.DefaultParserOptions);

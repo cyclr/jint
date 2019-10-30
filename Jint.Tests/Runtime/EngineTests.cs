@@ -2908,7 +2908,7 @@ return JSON.stringify(o);").GetCompletionValue().ToObject();
         }
 
         [Fact]
-        public void CanUseListReturnedFromDelegate()
+        public void CanUseObjectListReturnedFromDelegate()
         {
             var engine = new Engine();
 
@@ -2955,6 +2955,36 @@ return JSON.stringify(o);").GetCompletionValue().ToObject();
                 expandoObject.value = obj[0].value + 1;
                 return new object[] { expandoObject };
             }));
+        }
+
+        [Fact]
+        public void CanUseStringListReturnedFromDelegate()
+        {
+            var engine = new Engine();
+
+            void RunAsserts()
+            {
+                dynamic o = engine.Execute(@"var o = [{ value: 1 }];
+o = increment(o);
+return o;").GetCompletionValue().ToObject();
+                Assert.IsType<object[]>(o);
+                Assert.Single((object[])o);
+                Assert.IsType<string>(((object[])o)[0]);
+                Assert.Equal("2", (string)((object[])o)[0]);
+
+                o = engine.Execute(@"var o = [{ value: 1 }];
+o = increment(o);
+return JSON.stringify(o);").GetCompletionValue().ToObject();
+                Assert.IsType<string>(o);
+                Assert.Equal("[\"2\"]", o);
+            }
+
+            // Returns a new List<string>
+            engine.SetValue("increment", new Func<dynamic, dynamic>(obj => new List<string> { (obj[0].value + 1).ToString() }));
+            RunAsserts();
+
+            // Returns a new string[]
+            engine.SetValue("increment", new Func<dynamic, dynamic>(obj => new string[] { (obj[0].value + 1).ToString() }));
             RunAsserts();
         }
 
