@@ -37,7 +37,6 @@ namespace Jint.Native
             for (int i = 0; i < NumbersMax; i++)
             {
                 _intToJsValue[i] = new JsNumber(i);
-                _doubleToJsValue[i] = new JsNumber((double)i);
             }
         }
 
@@ -166,7 +165,7 @@ namespace Jint.Native
 
         internal static JsNumber Create(long value)
         {
-            if ((ulong) value < (ulong) _intToJsValue.Length)
+            if ((ulong)value < (ulong)_intToJsValue.Length)
             {
                 return _intToJsValue[value];
             }
