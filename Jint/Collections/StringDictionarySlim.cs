@@ -29,7 +29,6 @@ namespace Jint.Collections
         private int _count;
         // 0-based index into _entries of head of free chain: -1 means empty
         private int _freeList = -1;
-        private int _freeCount;
         // 1-based index into _entries; 0 means empty
         private int[] _buckets;
         private Entry[] _entries;
@@ -60,7 +59,7 @@ namespace Jint.Collections
             _entries = new Entry[capacity];
         }
 
-        public int Count => _count - _freeCount;
+        public int Count => _count;
 
         /// <summary>
         /// Clears the dictionary. Note that this invalidates any active enumerators.
@@ -69,7 +68,6 @@ namespace Jint.Collections
         {
             _count = 0;
             _freeList = -1;
-            _freeCount = 0;
             _buckets = HashHelpers.SizeOneIntArray;
             _entries = InitialEntries;
         }
@@ -77,7 +75,7 @@ namespace Jint.Collections
         public bool ContainsKey(in Key key)
         {
             Entry[] entries = _entries;
-            for (int i = _buckets[key.HashCode & (_buckets.Length - 1)] - 1;
+            for (int i = _buckets[key.HashCode & (_buckets.Length-1)] - 1;
                 (uint)i < (uint)entries.Length; i = entries[i].next)
             {
                 if (key == entries[i].key)
@@ -130,7 +128,7 @@ namespace Jint.Collections
                     entries[entryIndex].next = -3 - _freeList; // New head of free list
                     _freeList = entryIndex;
 
-                    _freeCount++;
+                    _count--;
                     return true;
                 }
                 lastIndex = entryIndex;
@@ -140,7 +138,7 @@ namespace Jint.Collections
             return false;
         }
 
-        // Not safe for concurrent _reads_ (at least, if either of them add)
+       // Not safe for concurrent _reads_ (at least, if either of them add)
         // For concurrent reads, prefer TryGetValue(key, out value)
         /// <summary>
         /// Gets the value for the specified key, or, if the key is not present,
@@ -174,28 +172,26 @@ namespace Jint.Collections
         {
             Entry[] entries = _entries;
             int entryIndex;
-            if (_freeCount > 0)
+            if (_freeList != -1)
             {
                 entryIndex = _freeList;
                 _freeList = -3 - entries[_freeList].next;
-                _freeCount--;
             }
             else
             {
-                var count = _count;
-                if (count == entries.Length || entries.Length == 1)
+                if (_count == entries.Length || entries.Length == 1)
                 {
                     entries = Resize();
                     bucketIndex = key.HashCode & (_buckets.Length - 1);
                     // entry indexes were not changed by Resize
                 }
-                entryIndex = count;
-                _count++;
+                entryIndex = _count;
             }
 
             entries[entryIndex].key = key;
             entries[entryIndex].next = _buckets[bucketIndex] - 1;
             _buckets[bucketIndex] = entryIndex + 1;
+            _count++;
             return ref entries[entryIndex].value;
         }
 
@@ -223,7 +219,7 @@ namespace Jint.Collections
 
             return entries;
         }
-
+        
         /// <summary>
         /// Gets an enumerator over the dictionary
         /// </summary>
@@ -244,30 +240,34 @@ namespace Jint.Collections
         {
             private readonly StringDictionarySlim<TValue> _dictionary;
             private int _index;
+            private int _count;
             private KeyValuePair<string, TValue> _current;
 
             internal Enumerator(StringDictionarySlim<TValue> dictionary)
             {
                 _dictionary = dictionary;
                 _index = 0;
+                _count = _dictionary._count;
                 _current = default;
             }
 
             public bool MoveNext()
             {
-                while ((uint)_index < (uint)_dictionary._count)
+                if (_count == 0)
                 {
-                    ref var entry = ref _dictionary._entries[_index++];
-                    if (entry.next < -1)
-                        continue;
-
-                    _current = new KeyValuePair<string, TValue>(entry.key, entry.value);
-                    return true;
+                    _current = default;
+                    return false;
                 }
 
-                _index = _dictionary._count + 1;
-                _current = default;
-                return false;
+                _count--;
+
+                while (_dictionary._entries[_index].next < -1)
+                    _index++;
+
+                _current = new KeyValuePair<string, TValue>(
+                    _dictionary._entries[_index].key,
+                    _dictionary._entries[_index++].value);
+                return true;
             }
 
             public KeyValuePair<string, TValue> Current => _current;
@@ -277,11 +277,13 @@ namespace Jint.Collections
             void IEnumerator.Reset()
             {
                 _index = 0;
+                _count = _dictionary._count;
+                _current = default;
             }
 
             public void Dispose() { }
         }
-
+        
         internal static class HashHelpers
         {
             internal static readonly int[] SizeOneIntArray = new int[1];

@@ -2785,6 +2785,18 @@ x.test = {
             Assert.Equal(5, obj.Test.Init(2, 3));
         }
 
+        [Fact]
+        public void ShouldOverrideDefaultTypeConverter()
+        {
+            var engine = new Engine
+            {
+                ClrTypeConverter = new TestTypeConverter()
+            };
+            Assert.IsType<TestTypeConverter>(engine.ClrTypeConverter);
+            engine.SetValue("x", new Testificate());
+            Assert.Throws<JavaScriptException>(() => engine.Execute("c.Name"));
+        }
+
         private class Wrapper
         {
             public Testificate Test { get; set; }
@@ -2794,6 +2806,20 @@ x.test = {
         {
             public string Name { get; set; }
             public Func<int, int, int> Init { get; set; }
+        }
+
+        private class TestTypeConverter : Jint.Runtime.Interop.ITypeConverter
+        {
+
+            public object Convert(object value, Type type, IFormatProvider formatProvider)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool TryConvert(object value, Type type, IFormatProvider formatProvider, out object converted)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [Fact]

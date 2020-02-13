@@ -384,7 +384,7 @@ namespace Jint.Native.Array
             var prop = GetOwnProperty(index);
             if (prop == PropertyDescriptor.Undefined)
             {
-                prop = Prototype?.GetProperty(TypeConverter.ToString(index)) ?? PropertyDescriptor.Undefined;
+                prop = Prototype?.GetProperty(index) ?? PropertyDescriptor.Undefined;
             }
 
             return UnwrapJsValue(prop);
@@ -398,7 +398,7 @@ namespace Jint.Native.Array
             {
                 return prop;
             }
-            return Prototype?.GetProperty(TypeConverter.ToString(index)) ?? PropertyDescriptor.Undefined;
+            return Prototype?.GetProperty(index) ?? PropertyDescriptor.Undefined;
         }
 
         protected internal override void SetOwnProperty(in Key propertyName, PropertyDescriptor desc)
@@ -462,6 +462,11 @@ namespace Jint.Native.Array
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint ParseArrayIndex(string p)
         {
+            if (p.Length == 0)
+            {
+                return uint.MaxValue;
+            }
+
             int d = p[0] - '0';
 
             if (d < 0 || d > 9)
@@ -556,7 +561,7 @@ namespace Jint.Native.Array
             value = Undefined;
 
             TryGetDescriptor(index, out var desc);
-            desc = desc ?? GetProperty(TypeConverter.ToString(index)) ?? PropertyDescriptor.Undefined;
+            desc = desc ?? GetProperty(index) ?? PropertyDescriptor.Undefined;
             return desc.TryGetValue(this, out value);
         }
 
@@ -729,7 +734,7 @@ namespace Jint.Native.Array
             }
             else
             {
-                DefineOwnProperty(TypeConverter.ToString((uint) n), desc, true);
+                DefineOwnProperty((uint) n, desc, true);
             }
         }
 

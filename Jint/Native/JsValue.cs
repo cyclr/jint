@@ -26,9 +26,14 @@ namespace Jint.Native
     {
         public static readonly JsValue Undefined = new JsUndefined();
         public static readonly JsValue Null = new JsNull();
-        internal readonly Types _type;
+        internal readonly InternalTypes _type;
 
         protected JsValue(Types type)
+        {
+            _type = (InternalTypes) type;
+        }
+
+        internal JsValue(InternalTypes type)
         {
             _type = type;
         }
@@ -37,21 +42,21 @@ namespace Jint.Native
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsPrimitive()
         {
-            return _type != Types.Object && _type != Types.None;
+            return _type != InternalTypes.Object && _type != InternalTypes.None;
         }
 
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsUndefined()
         {
-            return _type == Types.Undefined;
+            return _type == InternalTypes.Undefined;
         }
 
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsNullOrUndefined()
         {
-            return _type < Types.Boolean;
+            return _type < InternalTypes.Boolean;
         }
 
         [Pure]
@@ -79,49 +84,56 @@ namespace Jint.Native
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsObject()
         {
-            return _type == Types.Object;
+            return _type == InternalTypes.Object;
         }
 
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsString()
         {
-            return _type == Types.String;
+            return _type == InternalTypes.String;
         }
 
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsNumber()
         {
-            return _type == Types.Number;
+            return _type == InternalTypes.Number || _type == InternalTypes.Integer;
+        }
+
+        [Pure]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool IsInteger()
+        {
+            return _type == InternalTypes.Integer;
         }
 
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsBoolean()
         {
-            return _type == Types.Boolean;
+            return _type == InternalTypes.Boolean;
         }
 
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsNull()
         {
-            return _type == Types.Null;
+            return _type == InternalTypes.Null;
         }
 
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsCompletion()
         {
-            return _type == Types.Completion;
+            return _type == InternalTypes.Completion;
         }
 
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsSymbol()
         {
-            return _type == Types.Symbol;
+            return _type == InternalTypes.Symbol;
         }
 
         [Pure]
@@ -221,7 +233,7 @@ namespace Jint.Native
         [Pure]
         public Completion AsCompletion()
         {
-            if (_type != Types.Completion)
+            if (_type != InternalTypes.Completion)
             {
                 ExceptionHelper.ThrowArgumentException("The value is not a completion record");
             }
@@ -269,11 +281,10 @@ namespace Jint.Native
             return null;
         }
 
-        // ReSharper disable once ConvertToAutoPropertyWhenPossible // PERF
         public Types Type
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return _type; }
+            get => _type == InternalTypes.Integer ? Types.Number : (Types) _type;
         }
 
         /// <summary>
@@ -496,22 +507,32 @@ namespace Jint.Native
             return !a.Equals(b);
         }
 
-        static public implicit operator JsValue(char value)
+        public static implicit operator JsValue(char value)
         {
             return JsString.Create(value);
         }
 
-        static public implicit operator JsValue(int value)
+        public static implicit operator JsValue(int value)
         {
             return JsNumber.Create(value);
         }
 
-        static public implicit operator JsValue(uint value)
+        public static implicit operator JsValue(uint value)
         {
             return JsNumber.Create(value);
         }
 
-        static public implicit operator JsValue(double value)
+        public static implicit operator JsValue(double value)
+        {
+            return JsNumber.Create(value);
+        }
+
+        public static implicit operator JsValue(long value)
+        {
+            return JsNumber.Create(value);
+        }
+
+        public static implicit operator JsValue(ulong value)
         {
             return JsNumber.Create(value);
         }
