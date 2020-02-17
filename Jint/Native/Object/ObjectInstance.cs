@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Runtime.CompilerServices;
-using Jint.Collections;
+﻿using Jint.Collections;
 using Jint.Native.Array;
 using Jint.Native.Boolean;
 using Jint.Native.Date;
@@ -16,6 +12,10 @@ using Jint.Runtime.Descriptors;
 using Jint.Runtime.Descriptors.Specialized;
 using Jint.Runtime.Interop;
 using Jint.Runtime.Interpreter.Expressions;
+using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Runtime.CompilerServices;
 
 namespace Jint.Native.Object
 {
@@ -218,7 +218,7 @@ namespace Jint.Native.Object
                     return true;
                 }
 
-                var getter = desc.Get ??  Undefined;
+                var getter = desc.Get ?? Undefined;
                 if (getter.IsUndefined())
                 {
                     value = Undefined;
@@ -278,7 +278,7 @@ namespace Jint.Native.Object
             if (desc.IsAccessorDescriptor())
             {
                 var setter = desc.Set.TryCast<ICallable>();
-                setter.Call(this, new[] {value});
+                setter.Call(this, new[] { value });
             }
             else
             {
@@ -703,13 +703,13 @@ namespace Jint.Native.Object
             if (!ReferenceEquals(descGet, null))
             {
                 mutable = new GetSetPropertyDescriptor(mutable ?? current);
-                ((GetSetPropertyDescriptor) mutable).SetGet(descGet);
+                ((GetSetPropertyDescriptor)mutable).SetGet(descGet);
             }
 
             if (!ReferenceEquals(descSet, null))
             {
                 mutable = new GetSetPropertyDescriptor(mutable ?? current);
-                ((GetSetPropertyDescriptor) mutable).SetSet(descSet);
+                ((GetSetPropertyDescriptor)mutable).SetSet(descSet);
             }
 
             if (mutable != null)
@@ -816,7 +816,7 @@ namespace Jint.Native.Object
                 case "Boolean":
                     if (this is BooleanInstance booleanInstance)
                     {
-                        return ((JsBoolean) booleanInstance.PrimitiveValue)._value
+                        return ((JsBoolean)booleanInstance.PrimitiveValue)._value
                              ? JsBoolean.BoxedTrue
                              : JsBoolean.BoxedFalse;
                     }
@@ -826,7 +826,7 @@ namespace Jint.Native.Object
                 case "Function":
                     if (this is FunctionInstance function)
                     {
-                        return (Func<JsValue, JsValue[], JsValue>) function.Call;
+                        return (Func<JsValue, JsValue[], JsValue>)function.Call;
                     }
 
                     break;
@@ -862,7 +862,13 @@ namespace Jint.Native.Object
                             continue;
                         }
 
-                        o.Add(p.Key, Get(p.Key).ToObject());
+                        var jsValue = Get(p.Key);
+
+                        // Detect self referencing loop.
+                        if (jsValue == this)
+                            ExceptionHelper.ThrowRecursionDepthOverflowException(_engine.CallStack, nameof(ToObject));
+
+                        o.Add(p.Key, jsValue.ToObject());
                     }
 
                     return o;
@@ -900,12 +906,12 @@ namespace Jint.Native.Object
                     else
                     {
                         // if getter is not undefined it must be ICallable
-                        len = TypeConverter.ToNumber(((ICallable) getter).Call(this, Arguments.Empty));
+                        len = TypeConverter.ToNumber(((ICallable)getter).Call(this, Arguments.Empty));
                     }
                 }
 
-                return (long) System.Math.Max(
-                    0, 
+                return (long)System.Math.Max(
+                    0,
                     System.Math.Min(len, ArrayPrototype.ArrayOperations.MaxArrayLikeLength));
             }
 
@@ -923,7 +929,7 @@ namespace Jint.Native.Object
                 value = Undefined;
                 return false;
             }
-            
+
             var callbackfn = arguments.At(0);
             var thisArg = arguments.At(1);
             var callable = GetCallable(callbackfn);
@@ -969,7 +975,7 @@ namespace Jint.Native.Object
 
         internal virtual bool IsArrayLike => TryGetValue("length", out var lengthValue)
                                              && lengthValue.IsNumber()
-                                             && ((JsNumber) lengthValue)._value >= 0;
+                                             && ((JsNumber)lengthValue)._value >= 0;
 
         protected bool TryGetIsConcatSpreadable(out bool isConcatSpreadable)
         {
