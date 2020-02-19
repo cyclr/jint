@@ -896,6 +896,17 @@ namespace Jint.Tests.Runtime
             );
         }
 
+        [Theory]
+        [InlineData("var o = {}; o.self = o;")]
+        [InlineData("var o = {p: 1}; o.self = o;")]
+        public void ShouldDiscardSelfReferenceRecursion(string script)
+        {
+            var engine = new Engine();
+            engine.Execute(script);
+
+            Assert.Throws<RecursionDepthOverflowException>(() => engine.GetValue("o").ToObject());
+        }
+
         [Fact]
         public void ShouldConvertDoubleToStringWithoutLosingPrecision()
         {
