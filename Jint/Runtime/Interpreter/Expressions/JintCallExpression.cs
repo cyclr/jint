@@ -12,9 +12,6 @@ namespace Jint.Runtime.Interpreter.Expressions
         private readonly bool _isDebugMode;
         private readonly int _maxRecursionDepth;
 
-        private CachedArgumentsHolder _cachedArguments;
-        private bool _cached;
-
         private readonly JintExpression _calleeExpression;
         private bool _hasSpreads;
 
@@ -58,7 +55,7 @@ namespace Jint.Runtime.Interpreter.Expressions
 
             if (cacheable)
             {
-                _cached = true;
+                expression.Cached = true;
                 var arguments = ArrayExt.Empty<JsValue>();
                 if (cachedArgumentsHolder.JintArguments.Length > 0)
                 {
@@ -69,7 +66,7 @@ namespace Jint.Runtime.Interpreter.Expressions
                 cachedArgumentsHolder.CachedArguments = arguments;
             }
 
-            _cachedArguments = cachedArgumentsHolder;
+            expression.CachedArguments = cachedArgumentsHolder;
         }
 
         protected override object EvaluateInternal()
@@ -84,9 +81,9 @@ namespace Jint.Runtime.Interpreter.Expressions
 
             // todo: implement as in http://www.ecma-international.org/ecma-262/5.1/#sec-11.2.4
 
-            var cachedArguments = _cachedArguments;
+            var cachedArguments = (CachedArgumentsHolder) expression.CachedArguments;
             var arguments = ArrayExt.Empty<JsValue>();
-            if (_cached)
+            if (expression.Cached)
             {
                 arguments = cachedArguments.CachedArguments;
             }
@@ -177,7 +174,7 @@ namespace Jint.Runtime.Interpreter.Expressions
                 _engine.CallStack.Pop();
             }
 
-            if (!_cached && arguments.Length > 0)
+            if (!expression.Cached && arguments.Length > 0)
             {
                 _engine._jsValueArrayPool.ReturnArray(arguments);
             }
@@ -186,7 +183,7 @@ namespace Jint.Runtime.Interpreter.Expressions
             return result;
         }
 
-        private class CachedArgumentsHolder
+        internal class CachedArgumentsHolder
         {
             internal JintExpression[] JintArguments;
             internal JsValue[] CachedArguments;
