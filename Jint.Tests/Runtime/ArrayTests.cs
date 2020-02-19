@@ -1,4 +1,5 @@
 using System;
+using Jint.Runtime;
 using Xunit;
 
 namespace Jint.Tests.Runtime
@@ -45,12 +46,5 @@ namespace Jint.Tests.Runtime
             Assert.Equal("[object Object]", result);
         }
 
-        [Fact]
-        public void EmptyStringKey()
-        {
-            var result = _engine.Execute("var x=[];x[\"\"]=8;x[\"\"];").GetCompletionValue().AsNumber();
-
-            Assert.Equal(8, result);
-        }
     }
 }
