@@ -102,11 +102,6 @@ namespace Jint.Runtime
             throw new ArgumentOutOfRangeException();
         }
 
-        public static T ThrowArgumentOutOfRangeException<T>(string paramName, string message)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-
         public static void ThrowArgumentOutOfRangeException(string paramName, string message)
         {
             throw new ArgumentOutOfRangeException(paramName, message);
