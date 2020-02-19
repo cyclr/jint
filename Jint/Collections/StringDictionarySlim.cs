@@ -240,29 +240,22 @@ namespace Jint.Collections
         {
             private readonly StringDictionarySlim<TValue> _dictionary;
             private int _index;
-            private int _count;
             private KeyValuePair<string, TValue> _current;
 
             internal Enumerator(StringDictionarySlim<TValue> dictionary)
             {
                 _dictionary = dictionary;
                 _index = 0;
-                _count = _dictionary._count;
                 _current = default;
             }
 
             public bool MoveNext()
             {
-                if (_count == 0)
+                if (_index == _dictionary._count)
                 {
                     _current = default;
                     return false;
                 }
-
-                _count--;
-
-                while (_dictionary._entries[_index].next < -1)
-                    _index++;
 
                 _current = new KeyValuePair<string, TValue>(
                     _dictionary._entries[_index].key,
@@ -277,8 +270,6 @@ namespace Jint.Collections
             void IEnumerator.Reset()
             {
                 _index = 0;
-                _count = _dictionary._count;
-                _current = default;
             }
 
             public void Dispose() { }
