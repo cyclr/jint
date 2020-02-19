@@ -218,14 +218,6 @@ namespace Jint.Native.String
 
         private static int ToIntegerSupportInfinity(JsValue numberVal)
         {
-            return numberVal._type == InternalTypes.Integer
-                ? numberVal.AsInteger()
-                : ToIntegerSupportInfinityUnlikely(numberVal);
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static int ToIntegerSupportInfinityUnlikely(JsValue numberVal)
-        {
             var doubleVal = TypeConverter.ToInteger(numberVal);
             int intVal;
             if (double.IsPositiveInfinity(doubleVal))
@@ -848,7 +840,7 @@ namespace Jint.Native.String
             {
                 return JsNumber.DoubleNaN;
             }
-            return (long) s[position];
+            return (double) s[position];
         }
 
         private JsValue CodePointAt(JsValue thisObj, JsValue[] arguments)
@@ -863,10 +855,10 @@ namespace Jint.Native.String
                 return Undefined;
             }
 
-            var first = (long) s[position];
+            var first = (double) s[position];
             if (first >= 0xD800 && first <= 0xDBFF && s.Length > position + 1)
             {
-                long second = s[position + 1];
+                double second = s[position + 1];
                 if (second >= 0xDC00 && second <= 0xDFFF)
                 {
                     return (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
@@ -886,6 +878,7 @@ namespace Jint.Native.String
                 return "";
             }
             return TypeConverter.ToString(s[(int) position]);
+
         }
 
         private JsValue ValueOf(JsValue thisObj, JsValue[] arguments)

@@ -55,20 +55,13 @@ namespace Jint.Native.Argument
             ObjectInstance map = null;
             if (args.Length > 0)
             {
-                HashSet<string> mappedNamed = null;
-                if (!_strict)
-                {
-                    mappedNamed = _mappedNamed.Value;
-                    mappedNamed.Clear();
-                }
+                var mappedNamed = _mappedNamed.Value;
+                mappedNamed.Clear();
                 for (var i = 0; i < (uint) args.Length; i++)
                 {
-                    var indexKey = i < Key.indexKeys.Length
-                        ? Key.indexKeys[i]
-                        : (Key) TypeConverter.ToString(i);
-
+                    var indxStr = (Key) TypeConverter.ToString(i);
                     var val = args[i];
-                    SetOwnProperty(indexKey, new PropertyDescriptor(val, PropertyFlag.ConfigurableEnumerableWritable));
+                    SetOwnProperty(indxStr, new PropertyDescriptor(val, PropertyFlag.ConfigurableEnumerableWritable));
                     if (i < _names.Length)
                     {
                         var name = _names[i];
@@ -76,7 +69,7 @@ namespace Jint.Native.Argument
                         {
                             map = map ?? Engine.Object.Construct(Arguments.Empty);
                             mappedNamed.Add(name);
-                            map.SetOwnProperty(indexKey, new ClrAccessDescriptor(_env, Engine, name));
+                            map.SetOwnProperty(indxStr, new ClrAccessDescriptor(_env, Engine, name));
                         }
                     }
                 }

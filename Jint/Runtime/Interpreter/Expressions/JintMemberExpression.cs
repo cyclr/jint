@@ -24,7 +24,7 @@ namespace Jint.Runtime.Interpreter.Expressions
 
             if (!expression.Computed)
             {
-                _determinedPropertyName = ((Identifier) expression.Property).Name;
+                _determinedPropertyName = ((Esprima.Ast.Identifier) expression.Property).Name;
             }
             else
             {
@@ -70,7 +70,7 @@ namespace Jint.Runtime.Interpreter.Expressions
                 }
             }
 
-            var propertyName = _determinedPropertyName.Name.Length > 0
+            var propertyName = !string.IsNullOrEmpty(_determinedPropertyName.Name)
                 ? _determinedPropertyName
                 : (Key) TypeConverter.ToPropertyKey(_propertyExpression.GetValue());
 

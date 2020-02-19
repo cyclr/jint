@@ -31,16 +31,6 @@ namespace Jint.Runtime.Environments
         {
         }
 
-        internal void Reset()
-        {
-            _dictionary?.Clear();
-            _set = false;
-            _key = default;
-            _value = default;
-            _argumentsBinding = default;
-            _argumentsBindingWasAccessed = false;
-        }
-
         private void SetItem(in Key key, in Binding value)
         {
             if (_set && _key != key)
@@ -195,7 +185,7 @@ namespace Jint.Runtime.Environments
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private JsValue UnwrapBindingValue(bool strict, in Binding binding)
         {
-            if (!binding.Mutable && binding.Value._type == InternalTypes.Undefined)
+            if (!binding.Mutable && binding.Value._type == Types.Undefined)
             {
                 if (strict)
                 {

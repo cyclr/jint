@@ -56,9 +56,9 @@ namespace Jint.Runtime.Interpreter.Statements
                 var keys = _engine.Object.GetOwnPropertyNames(Undefined.Instance, Arguments.From(cursor)).AsArray();
 
                 var length = keys.GetLength();
-                for (uint i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
-                    var p = keys.GetOwnProperty(i).Value.AsStringWithoutTypeCheck();
+                    var p = keys.GetOwnProperty(TypeConverter.ToString(i)).Value.AsStringWithoutTypeCheck();
 
                     if (processedKeys.Contains(p))
                     {
