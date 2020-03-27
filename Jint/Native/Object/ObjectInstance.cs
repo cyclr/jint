@@ -765,117 +765,187 @@ namespace Jint.Native.Object
 
         public override object ToObject()
         {
+            return ToObjectTrackStack(new Stack<ObjectInstance>());
+        }
+
+        private object ToObjectTrackStack(Stack<ObjectInstance> stack)
+        {
+            object toReturn;
+
+            stack.Push(this);
+
             if (this is IObjectWrapper wrapper)
             {
-                return wrapper.Target;
+                toReturn = wrapper.Target;
             }
-
-            switch (Class)
+            else
             {
-                case "Array":
-                    if (this is ArrayInstance arrayInstance)
-                    {
-                        var len = TypeConverter.ToInt32(arrayInstance.Get("length"));
-                        var result = new object[len];
-                        for (var k = 0; k < len; k++)
+                switch (Class)
+                {
+                    case "Array":
+                        if (this is ArrayInstance arrayInstance)
                         {
-                            var pk = TypeConverter.ToString(k);
-                            var kpresent = arrayInstance.HasProperty(pk);
-                            if (kpresent)
+                            var len = TypeConverter.ToInt32(arrayInstance.Get("length"));
+                            var result = new object[len];
+                            for (var k = 0; k < len; k++)
                             {
-                                var kvalue = arrayInstance.Get(pk);
-                                result[k] = kvalue.ToObject();
+                                var pk = TypeConverter.ToString(k);
+                                var kpresent = arrayInstance.HasProperty(pk);
+                                if (kpresent)
+                                {
+                                    var kvalue = arrayInstance.Get(pk);
+                                    if (kvalue is ObjectInstance oi)
+                                    {
+                                        DetectSelfReferencingLoop(stack, oi);
+                                        result[k] = oi.ToObjectTrackStack(stack);
+                                    }
+                                    else
+                                    {
+                                        result[k] = kvalue.ToObject();
+                                    }
+                                }
+                                else
+                                {
+                                    result[k] = null;
+                                }
                             }
-                            else
-                            {
-                                result[k] = null;
-                            }
+
+                            toReturn = result;
+                        }
+                        else
+                        {
+                            toReturn = this;
                         }
 
-                        return result;
-                    }
+                        break;
 
-                    break;
+                    case "String":
+                        if (this is StringInstance stringInstance)
+                        {
+                            toReturn = stringInstance.PrimitiveValue.ToString();
+                        }
+                        else
+                        {
+                            toReturn = this;
+                        }
 
-                case "String":
-                    if (this is StringInstance stringInstance)
-                    {
-                        return stringInstance.PrimitiveValue.ToString();
-                    }
+                        break;
 
-                    break;
+                    case "Date":
+                        if (this is DateInstance dateInstance)
+                        {
+                            toReturn = dateInstance.ToDateTime();
+                        }
+                        else
+                        {
+                            toReturn = this;
+                        }
 
-                case "Date":
-                    if (this is DateInstance dateInstance)
-                    {
-                        return dateInstance.ToDateTime();
-                    }
+                        break;
 
-                    break;
+                    case "Boolean":
+                        if (this is BooleanInstance booleanInstance)
+                        {
+                            toReturn = ((JsBoolean)booleanInstance.PrimitiveValue)._value
+                                 ? JsBoolean.BoxedTrue
+                                 : JsBoolean.BoxedFalse;
+                        }
+                        else
+                        {
+                            toReturn = this;
+                        }
 
-                case "Boolean":
-                    if (this is BooleanInstance booleanInstance)
-                    {
-                        return ((JsBoolean)booleanInstance.PrimitiveValue)._value
-                             ? JsBoolean.BoxedTrue
-                             : JsBoolean.BoxedFalse;
-                    }
+                        break;
 
-                    break;
+                    case "Function":
+                        if (this is FunctionInstance function)
+                        {
+                            toReturn = (Func<JsValue, JsValue[], JsValue>)function.Call;
+                        }
+                        else
+                        {
+                            toReturn = this;
+                        }
 
-                case "Function":
-                    if (this is FunctionInstance function)
-                    {
-                        return (Func<JsValue, JsValue[], JsValue>)function.Call;
-                    }
+                        break;
 
-                    break;
+                    case "Number":
+                        if (this is NumberInstance numberInstance)
+                        {
+                            toReturn = numberInstance.NumberData._value;
+                        }
+                        else
+                        {
+                            toReturn = this;
+                        }
 
-                case "Number":
-                    if (this is NumberInstance numberInstance)
-                    {
-                        return numberInstance.NumberData._value;
-                    }
+                        break;
 
-                    break;
+                    case "RegExp":
+                        if (this is RegExpInstance regeExpInstance)
+                        {
+                            toReturn = regeExpInstance.Value;
+                        }
+                        else
+                        {
+                            toReturn = this;
+                        }
 
-                case "RegExp":
-                    if (this is RegExpInstance regeExpInstance)
-                    {
-                        return regeExpInstance.Value;
-                    }
+                        break;
 
-                    break;
-
-                case "Arguments":
-                case "Object":
+                    case "Arguments":
+                    case "Object":
 #if __IOS__
                                 IDictionary<string, object> o = new DictionarySlim<string, object>();
 #else
-                    IDictionary<string, object> o = new ExpandoObject();
+                        IDictionary<string, object> o = new ExpandoObject();
 #endif
 
-                    foreach (var p in GetOwnProperties())
-                    {
-                        if (!p.Value.Enumerable)
+                        foreach (var p in GetOwnProperties())
                         {
-                            continue;
+                            if (!p.Value.Enumerable)
+                            {
+                                continue;
+                            }
+
+                            var jsValue = Get(p.Key);
+                            if (jsValue is ObjectInstance oi)
+                            {
+                                DetectSelfReferencingLoop(stack, oi);
+                                o.Add(p.Key, oi.ToObjectTrackStack(stack));
+                            }
+                            else
+                            {
+                                o.Add(p.Key, jsValue.ToObject());
+                            }
                         }
 
-                        var jsValue = Get(p.Key);
+                        toReturn = o;
+                        break;
 
-                        // Detect self referencing loop.
-                        if (jsValue == this)
-                            ExceptionHelper.ThrowRecursionDepthOverflowException(_engine.CallStack, nameof(ToObject));
-
-                        o.Add(p.Key, jsValue.ToObject());
-                    }
-
-                    return o;
+                    default:
+                        toReturn = this;
+                        break;
+                }
             }
 
+            stack.Pop();
 
-            return this;
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Checks if the object instance already exists in the call stack.
+        /// If it exists, throws a self referencing loop exception.
+        /// </summary>
+        /// <param name="callStack">Call stack.</param>
+        /// <param name="objectInstance">Object instance to check.</param>
+        private void DetectSelfReferencingLoop(Stack<ObjectInstance> callStack, ObjectInstance objectInstance)
+        {
+            if (callStack.Contains(objectInstance))
+            {
+                ExceptionHelper.ThrowRecursionDepthOverflowException(_engine.CallStack, nameof(ToObject));
+            }
         }
 
         /// <summary>
