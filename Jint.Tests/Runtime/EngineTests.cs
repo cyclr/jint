@@ -899,6 +899,9 @@ namespace Jint.Tests.Runtime
         [Theory]
         [InlineData("var o = {}; o.self = o;")]
         [InlineData("var o = {p: 1}; o.self = o;")]
+        [InlineData("var o = [{p: 1}]; var t = [o[0]]; o[0].self = t;")]
+        [InlineData("var o = []; o[0] = o;")]
+        [InlineData("var o = []; var t = o; o[0] = t;")]
         public void ShouldDiscardSelfReferenceRecursion(string script)
         {
             var engine = new Engine();
