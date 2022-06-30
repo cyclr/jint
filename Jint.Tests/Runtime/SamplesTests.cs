@@ -32,7 +32,7 @@ namespace Jint.Tests.Runtime
                 .Evaluate("x * x")
                 .ToObject();
 
-            Assert.Equal(9d, square);
+            Assert.Equal(9, square);
         }
     }
 }

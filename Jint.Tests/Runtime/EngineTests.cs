@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -97,7 +99,13 @@ namespace Jint.Tests.Runtime
         }
 
         [Theory]
-        [InlineData(42d, "42")]
+        [InlineData(42, "42")]
+        [InlineData(42.1, "42.1")]
+        [InlineData(123456789012L, "123456789012")]
+        [InlineData(-123456789012L, "-123456789012")]
+        [InlineData(123456789012L, "123456789012.0")]
+        [InlineData(123456789012.1d, "123456789012.1")]
+        [InlineData(-123456789012.1d, "-123456789012.1")]
         [InlineData("Hello", "'Hello'")]
         public void ShouldInterpretLiterals(object expected, string source)
         {
@@ -119,16 +127,16 @@ namespace Jint.Tests.Runtime
         }
 
         [Theory]
-        [InlineData(4d, "1 + 3")]
-        [InlineData(-2d, "1 - 3")]
-        [InlineData(3d, "1 * 3")]
-        [InlineData(2d, "6 / 3")]
-        [InlineData(9d, "15 & 9")]
-        [InlineData(15d, "15 | 9")]
-        [InlineData(6d, "15 ^ 9")]
-        [InlineData(36d, "9 << 2")]
-        [InlineData(2d, "9 >> 2")]
-        [InlineData(4d, "19 >>> 2")]
+        [InlineData(4, "1 + 3")]
+        [InlineData(-2, "1 - 3")]
+        [InlineData(3, "1 * 3")]
+        [InlineData(2, "6 / 3")]
+        [InlineData(9, "15 & 9")]
+        [InlineData(15, "15 | 9")]
+        [InlineData(6, "15 ^ 9")]
+        [InlineData(36, "9 << 2")]
+        [InlineData(2, "9 >> 2")]
+        [InlineData(4, "19 >>> 2")]
         public void ShouldInterpretBinaryExpression(object expected, string source)
         {
             var engine = new Engine();
@@ -138,8 +146,8 @@ namespace Jint.Tests.Runtime
         }
 
         [Theory]
-        [InlineData(-59d, "~58")]
-        [InlineData(58d, "~~58")]
+        [InlineData(-59, "~58")]
+        [InlineData(58, "~~58")]
         public void ShouldInterpretUnaryExpression(object expected, string source)
         {
             var engine = new Engine();
@@ -754,8 +762,8 @@ namespace Jint.Tests.Runtime
         [InlineData(double.NaN, "parseInt(undefined)")]
         [InlineData(double.NaN, "parseInt(new Boolean(true))")]
         [InlineData(double.NaN, "parseInt(Infinity)")]
-        [InlineData(-1d, "parseInt(-1)")]
-        [InlineData(-1d, "parseInt('-1')")]
+        [InlineData(-1, "parseInt(-1)")]
+        [InlineData(-1, "parseInt('-1')")]
         public void ShouldEvaluateParseInt(object expected, string source)
         {
             var engine = new Engine();
@@ -2336,7 +2344,7 @@ var prep = function (fn) { fn(); };
         //[InlineData("new Date(1969,0,1,19,45,30,500).getMilliseconds()", 500)]
         //[InlineData("new Date(1970,0,1,19,45,30,500).getMilliseconds()", 500)]
         //[InlineData("new Date(1971,0,1,19,45,30,500).getMilliseconds()", 500)]
-        public void ShouldExtractDateParts(string source, double expected)
+        public void ShouldExtractDateParts(string source, int expected)
         {
             var engine = new Engine();
             var result = engine.Evaluate(source).ToObject();
@@ -2859,6 +2867,231 @@ x.test = {
             {
                 throw new NotImplementedException();
             }
+        }
+
+        [Theory]
+        [InlineData("var o = {}; o.self = o;")]
+        [InlineData("var o = {p: 1}; o.self = o;")]
+        [InlineData("var o = [{p: 1}]; var t = [o[0]]; o[0].self = t;")]
+        [InlineData("var o = []; o[0] = o;")]
+        [InlineData("var o = []; var t = o; o[0] = t;")]
+        public void ShouldDiscardSelfReferenceRecursion(string script)
+        {
+            var engine = new Engine();
+            engine.Execute(script);
+
+            Assert.Throws<RecursionDepthOverflowException>(() => engine.GetValue("o").ToObject());
+        }
+
+        [Fact]
+        public void ShouldCreateObjectProperty()
+        {
+            var engine = new Engine();
+            engine.Execute("var o = { a: 1 }");
+
+            engine.Execute("o.b = 2");
+            dynamic o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(2, ((IDictionary<string, object>) o).Count);
+            Assert.Equal(1, o.a);
+            Assert.Equal(2, o.b);
+
+            engine.Execute("o.c = '3'");
+            o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(3, ((IDictionary<string, object>) o).Count);
+            Assert.Equal(1, o.a);
+            Assert.Equal(2, o.b);
+            Assert.Equal("3", o.c);
+        }
+
+        [Fact]
+        public void ShouldUpdateObjectProperty()
+        {
+            var engine = new Engine();
+            engine.Execute("var o = { a: 1, b: 2 }");
+
+            engine.Execute("o.a = 10");
+            dynamic o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(2, ((IDictionary<string, object>) o).Count);
+            Assert.Equal(10, o.a);
+            Assert.Equal(2, o.b);
+
+            engine.Execute("o.b = 'string'");
+            o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(2, ((IDictionary<string, object>) o).Count);
+            Assert.Equal(10, o.a);
+            Assert.Equal("string", o.b);
+        }
+
+        [Fact]
+        public void ShouldRemoveObjectProperty()
+        {
+            var engine = new Engine();
+            engine.Execute("var o = { a: 1, b: 2, c: '3' }");
+
+            engine.Execute("delete o.a");
+            dynamic o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(2, ((IDictionary<string, object>) o).Count);
+            Assert.Equal(2, o.b);
+            Assert.Equal("3", o.c);
+
+            engine.Execute("delete o.c");
+            o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Equal(1, ((IDictionary<string, object>) o).Count);
+            Assert.Equal(2, o.b);
+
+            engine.Execute("delete o.b");
+            o = engine.GetValue("o").ToObject();
+            Assert.IsType<ExpandoObject>(o);
+            Assert.Empty((IDictionary<string, object>) o);
+        }
+
+        [Fact]
+        public void CanUseObjectReturnedFromDelegate()
+        {
+            var engine = new Engine();
+
+            void RunAsserts()
+            {
+                dynamic o = engine.Execute(@"var o = { value: 1 };
+o = increment(o);
+return o;").GetCompletionValue().ToObject();
+                Assert.IsType<ExpandoObject>(o);
+                Assert.Equal(1, ((IDictionary<string, object>) o).Count);
+                Assert.Equal(2, o.value);
+
+                o = engine.Execute(@"var o = { value: 1 };
+o = increment(o);
+o = increment(o);
+return o;").GetCompletionValue().ToObject();
+                Assert.IsType<ExpandoObject>(o);
+                Assert.Equal(1, ((IDictionary<string, object>) o).Count);
+                Assert.Equal(3, o.value);
+
+                o = engine.Execute(@"var o = { value: 1 };
+o = increment(o);
+o = increment(o);
+return JSON.stringify(o);").GetCompletionValue().ToObject();
+                Assert.IsType<string>(o);
+                Assert.Equal("{\"value\":3}", o);
+            }
+
+            // Returns a new ExpandoObject
+            engine.SetValue("increment", new Func<dynamic, dynamic>(obj =>
+            {
+                dynamic expandoObject = new ExpandoObject();
+                expandoObject.value = obj.value + 1;
+                return expandoObject;
+            }));
+            RunAsserts();
+
+            // Returns a new Dictionary
+            engine.SetValue("increment", new Func<dynamic, dynamic>(obj =>
+                new Dictionary<string, object> { ["value"] = obj.value + 1 }
+            ));
+            RunAsserts();
+        }
+
+        [Fact]
+        public void CanUseObjectListReturnedFromDelegate()
+        {
+            var engine = new Engine();
+
+            void RunAsserts()
+            {
+                dynamic o = engine.Execute(@"var o = [{ value: 1 }];
+o = increment(o);
+return o;").GetCompletionValue().ToObject();
+                Assert.IsType<object[]>(o);
+                Assert.Single((object[]) o);
+                Assert.IsType<ExpandoObject>(((object[]) o)[0]);
+                Assert.Equal(2, ((dynamic) ((object[]) o)[0]).value);
+
+                o = engine.Execute(@"var o = [{ value: 1 }];
+o = increment(o);
+o = increment(o);
+return o;").GetCompletionValue().ToObject();
+                Assert.IsType<object[]>(o);
+                Assert.Single((object[]) o);
+                Assert.IsType<ExpandoObject>(((object[]) o)[0]);
+                Assert.Equal(3, ((dynamic) ((object[]) o)[0]).value);
+
+                o = engine.Execute(@"var o = [{ value: 1 }];
+o = increment(o);
+o = increment(o);
+return JSON.stringify(o);").GetCompletionValue().ToObject();
+                Assert.IsType<string>(o);
+                Assert.Equal("[{\"value\":3}]", o);
+            }
+
+            // Returns a new List<ExpandoObject>
+            engine.SetValue("increment", new Func<dynamic, dynamic>(obj =>
+            {
+                dynamic expandoObject = new ExpandoObject();
+                expandoObject.value = obj[0].value + 1;
+                return new List<ExpandoObject> { expandoObject };
+            }));
+            RunAsserts();
+
+            // Returns a new object[]
+            engine.SetValue("increment", new Func<dynamic, dynamic>(obj =>
+            {
+                dynamic expandoObject = new ExpandoObject();
+                expandoObject.value = obj[0].value + 1;
+                return new object[] { expandoObject };
+            }));
+        }
+
+        [Fact]
+        public void CanUseStringListReturnedFromDelegate()
+        {
+            var engine = new Engine();
+
+            void RunAsserts()
+            {
+                dynamic o = engine.Execute(@"var o = [{ value: 1 }];
+o = increment(o);
+return o;").GetCompletionValue().ToObject();
+                Assert.IsType<object[]>(o);
+                Assert.Single((object[]) o);
+                Assert.IsType<string>(((object[]) o)[0]);
+                Assert.Equal("2", (string) ((object[]) o)[0]);
+
+                o = engine.Execute(@"var o = [{ value: 1 }];
+o = increment(o);
+return JSON.stringify(o);").GetCompletionValue().ToObject();
+                Assert.IsType<string>(o);
+                Assert.Equal("[\"2\"]", o);
+            }
+
+            // Returns a new List<string>
+            engine.SetValue("increment", new Func<dynamic, dynamic>(obj => new List<string> { (obj[0].value + 1).ToString() }));
+            RunAsserts();
+
+            // Returns a new string[]
+            engine.SetValue("increment", new Func<dynamic, dynamic>(obj => new string[] { (obj[0].value + 1).ToString() }));
+            RunAsserts();
+        }
+
+        [Fact]
+        public void ShouldThrowExceptionFromFunction()
+        {
+            var engine = new Engine(options => options
+                .LimitRecursion(100)
+            );
+            engine.Execute(@"var object = { 'a': 1 };
+function getKeys() {
+    Object.keys(object).forEach(function (key) {
+        throw key;
+    });
+}");
+
+            Assert.Throws<JavaScriptException>(() => engine.Execute("getKeys()"));
         }
     }
 }

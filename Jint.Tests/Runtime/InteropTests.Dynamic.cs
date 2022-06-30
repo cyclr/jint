@@ -87,7 +87,7 @@ namespace Jint.Tests.Runtime
 
             var dic = (IDictionary<string, object>) result.ToObject();
 
-            Assert.Equal(1d, dic["a"]);
+            Assert.Equal(1, dic["a"]);
             Assert.Equal("foo", dic["b"]);
         }
 

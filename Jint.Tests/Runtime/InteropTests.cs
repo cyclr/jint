@@ -489,7 +489,7 @@ namespace Jint.Tests.Runtime
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "Incompatible with Cyclr script engine design")]
         public void CanUseIndexOnCollection()
         {
             var collection = new System.Collections.ObjectModel.Collection<string>();
@@ -507,7 +507,7 @@ namespace Jint.Tests.Runtime
             Assert.Equal("Donald Duck", collection[1]);
         }
 
-        [Fact]
+        [Fact(Skip = "Incompatible with Cyclr script engine design")]
         public void CanUseIndexOnList()
         {
             var list = new List<object>(2);
@@ -976,9 +976,9 @@ namespace Jint.Tests.Runtime
 
             Assert.True(parts.GetType().IsArray);
             Assert.Equal(3, ((object[]) parts).Length);
-            Assert.Equal(2d, ((object[]) parts)[0]);
-            Assert.Equal(4d, ((object[]) parts)[1]);
-            Assert.Equal(6d, ((object[]) parts)[2]);
+            Assert.Equal(2, ((object[]) parts)[0]);
+            Assert.Equal(4, ((object[]) parts)[1]);
+            Assert.Equal(6, ((object[]) parts)[2]);
         }
 
         [Fact]
@@ -992,9 +992,9 @@ namespace Jint.Tests.Runtime
 
             Assert.True(parts.GetType().IsArray);
             Assert.Equal(3, ((object[]) parts).Length);
-            Assert.Equal(2d, ((object[]) parts)[0]);
-            Assert.Equal(4d, ((object[]) parts)[1]);
-            Assert.Equal(6d, ((object[]) parts)[2]);
+            Assert.Equal(2, ((object[]) parts)[0]);
+            Assert.Equal(4, ((object[]) parts)[1]);
+            Assert.Equal(6, ((object[]) parts)[2]);
         }
 
         [Fact]
@@ -1287,7 +1287,7 @@ namespace Jint.Tests.Runtime
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "Incompatible with Cyclr script engine design")]
         public void ShouldExecuteActionCallbackOnEventChanged()
         {
             var collection = new System.Collections.ObjectModel.ObservableCollection<string>();
@@ -1525,7 +1525,7 @@ namespace Jint.Tests.Runtime
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "Incompatible with Cyclr script engine design")]
         public void ShouldCreateGenericType()
         {
             RunTest(@"
