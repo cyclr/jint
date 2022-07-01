@@ -25,7 +25,7 @@ namespace Jint
 {
     public partial class Engine
     {
-        private static readonly ParserOptions DefaultParserOptions = new("<anonymous>")
+        internal static readonly ParserOptions DefaultParserOptions = new("<anonymous>")
         {
             AdaptRegexp = true,
             Tolerant = true

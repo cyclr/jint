@@ -8,6 +8,7 @@ using Esprima;
 using Jint.Native;
 using Jint.Native.Array;
 using Jint.Native.Object;
+using Jint.ObjectConverters;
 using Jint.Runtime;
 using Jint.Runtime.Debugger;
 using Xunit;
@@ -2958,27 +2959,29 @@ x.test = {
 
             void RunAsserts()
             {
-                dynamic o = engine.Execute(@"var o = { value: 1 };
+                engine.Execute(@"var o = { value: 1 };
 o = increment(o);
-return o;").GetCompletionValue().ToObject();
+return o;");
+                dynamic o = engine.GetValue("o").ToObject();
                 Assert.IsType<ExpandoObject>(o);
                 Assert.Equal(1, ((IDictionary<string, object>) o).Count);
                 Assert.Equal(2, o.value);
 
-                o = engine.Execute(@"var o = { value: 1 };
+                engine.Execute(@"var o = { value: 1 };
 o = increment(o);
 o = increment(o);
-return o;").GetCompletionValue().ToObject();
+return o;");
+                o = engine.GetValue("o").ToObject();
                 Assert.IsType<ExpandoObject>(o);
                 Assert.Equal(1, ((IDictionary<string, object>) o).Count);
                 Assert.Equal(3, o.value);
 
-                o = engine.Execute(@"var o = { value: 1 };
+                var stringResult = engine.Evaluate(@"var o = { value: 1 };
 o = increment(o);
 o = increment(o);
-return JSON.stringify(o);").GetCompletionValue().ToObject();
-                Assert.IsType<string>(o);
-                Assert.Equal("{\"value\":3}", o);
+return JSON.stringify(o);").ToObject();
+                Assert.IsType<string>(stringResult);
+                Assert.Equal("{\"value\":3}", stringResult);
             }
 
             // Returns a new ExpandoObject
@@ -2989,44 +2992,43 @@ return JSON.stringify(o);").GetCompletionValue().ToObject();
                 return expandoObject;
             }));
             RunAsserts();
-
-            // Returns a new Dictionary
-            engine.SetValue("increment", new Func<dynamic, dynamic>(obj =>
-                new Dictionary<string, object> { ["value"] = obj.value + 1 }
-            ));
-            RunAsserts();
         }
 
         [Fact]
         public void CanUseObjectListReturnedFromDelegate()
         {
-            var engine = new Engine();
+            var engine = new Engine(options =>
+            {
+                options.AddObjectConverter(new CyclrObjectConverter());
+            });
 
             void RunAsserts()
             {
-                dynamic o = engine.Execute(@"var o = [{ value: 1 }];
+                engine.Evaluate(@"var o = [{ value: 1 }];
 o = increment(o);
-return o;").GetCompletionValue().ToObject();
+return o;");
+                dynamic o = engine.GetValue("o").ToObject();
                 Assert.IsType<object[]>(o);
                 Assert.Single((object[]) o);
                 Assert.IsType<ExpandoObject>(((object[]) o)[0]);
                 Assert.Equal(2, ((dynamic) ((object[]) o)[0]).value);
 
-                o = engine.Execute(@"var o = [{ value: 1 }];
+                o = engine.Evaluate(@"var o = [{ value: 1 }];
 o = increment(o);
 o = increment(o);
-return o;").GetCompletionValue().ToObject();
+return o;");
+                o = engine.GetValue("o").ToObject();
                 Assert.IsType<object[]>(o);
                 Assert.Single((object[]) o);
                 Assert.IsType<ExpandoObject>(((object[]) o)[0]);
                 Assert.Equal(3, ((dynamic) ((object[]) o)[0]).value);
 
-                o = engine.Execute(@"var o = [{ value: 1 }];
+                var stringResult = engine.Evaluate(@"var o = [{ value: 1 }];
 o = increment(o);
 o = increment(o);
-return JSON.stringify(o);").GetCompletionValue().ToObject();
-                Assert.IsType<string>(o);
-                Assert.Equal("[{\"value\":3}]", o);
+return JSON.stringify(o);").ToObject();
+                Assert.IsType<string>(stringResult);
+                Assert.Equal("[{\"value\":3}]", stringResult);
             }
 
             // Returns a new List<ExpandoObject>
@@ -3045,28 +3047,33 @@ return JSON.stringify(o);").GetCompletionValue().ToObject();
                 expandoObject.value = obj[0].value + 1;
                 return new object[] { expandoObject };
             }));
+            RunAsserts();
         }
 
         [Fact]
         public void CanUseStringListReturnedFromDelegate()
         {
-            var engine = new Engine();
+            var engine = new Engine(options =>
+            {
+                options.AddObjectConverter(new CyclrObjectConverter());
+            });
 
             void RunAsserts()
             {
-                dynamic o = engine.Execute(@"var o = [{ value: 1 }];
+                engine.Evaluate(@"var o = [{ value: 1 }];
 o = increment(o);
-return o;").GetCompletionValue().ToObject();
+return o;");
+                dynamic o = engine.GetValue("o").ToObject();
                 Assert.IsType<object[]>(o);
                 Assert.Single((object[]) o);
                 Assert.IsType<string>(((object[]) o)[0]);
                 Assert.Equal("2", (string) ((object[]) o)[0]);
 
-                o = engine.Execute(@"var o = [{ value: 1 }];
+                var stringResult = engine.Evaluate(@"var o = [{ value: 1 }];
 o = increment(o);
-return JSON.stringify(o);").GetCompletionValue().ToObject();
-                Assert.IsType<string>(o);
-                Assert.Equal("[\"2\"]", o);
+return JSON.stringify(o);").ToObject();
+                Assert.IsType<string>(stringResult);
+                Assert.Equal("[\"2\"]", stringResult);
             }
 
             // Returns a new List<string>
