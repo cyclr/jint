@@ -43,6 +43,7 @@ namespace Jint.Tests.Runtime
             public static Vector2 operator +(Vector2 left, Vector2 right) => new Vector2(left.X + right.X, left.Y + right.Y);
             public static Vector2 operator +(Vector2 left, double right) => new Vector2(left.X + right, left.Y + right);
             public static Vector2 operator +(string left, Vector2 right) => new Vector2(right.X, right.Y);
+            public static Vector2 operator +(int left, Vector2 right) => new Vector2(right.X + left, right.Y + left);
             public static Vector2 operator +(double left, Vector2 right) => new Vector2(right.X + left, right.Y + left);
             public static Vector2 operator -(Vector2 left, Vector2 right) => new Vector2(left.X - right.X, left.Y - right.Y);
             public static Vector2 operator *(Vector2 left, double right) => new Vector2(left.X * right, left.Y * right);
@@ -75,6 +76,7 @@ namespace Jint.Tests.Runtime
         {
             public Vector2Child(double x, double y) : base(x, y) { }
 
+            public static Vector2Child operator +(Vector2Child left, int right) => new Vector2Child(left.X + 2 * right, left.Y + 2 * right);
             public static Vector2Child operator +(Vector2Child left, double right) => new Vector2Child(left.X + 2 * right, left.Y + 2 * right);
         }
 
@@ -91,6 +93,8 @@ namespace Jint.Tests.Runtime
                 Z = z;
             }
 
+            public static Vector3 operator +(Vector3 left, int right) => new Vector3(left.X + right, left.Y + right, left.Z + right);
+            public static Vector3 operator +(int left, Vector3 right) => new Vector3(right.X + left, right.Y + left, right.Z + left);
             public static Vector3 operator +(Vector3 left, double right) => new Vector3(left.X + right, left.Y + right, left.Z + right);
             public static Vector3 operator +(double left, Vector3 right) => new Vector3(right.X + left, right.Y + left, right.Z + left);
             public static Vector3 operator +(Vector3 left, Vector3 right) => new Vector3(left.X + right.X, left.Y + right.Y, left.Z + right.Z);

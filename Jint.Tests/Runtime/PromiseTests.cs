@@ -409,14 +409,14 @@ namespace Jint.Tests.Runtime
         {
             var engine = new Engine();
 
-            Assert.Equal(new object[] {1d, 2d, 3d}, engine.Evaluate("Promise.all([1,2,3]);").UnwrapIfPromise().ToObject());
+            Assert.Equal(new object[] { 1, 2, 3 }, engine.Evaluate("Promise.all([1,2,3]);").UnwrapIfPromise().ToObject());
         }
 
         [Fact(Timeout = 5000)]
         public void PromiseAll_MixturePromisesNoPromises_ResolvesCorrectly()
         {
             var engine = new Engine();
-            Assert.Equal(new object[] {1d, 2d, 3d},
+            Assert.Equal(new object[] { 1, 2, 3 },
                 engine.Evaluate("Promise.all([1,Promise.resolve(2),3]);").UnwrapIfPromise().ToObject());
         }
 
@@ -456,7 +456,7 @@ namespace Jint.Tests.Runtime
         {
             var engine = new Engine();
 
-            Assert.Equal(12d, engine.Evaluate("Promise.race([12,2,3]);").UnwrapIfPromise().ToObject());
+            Assert.Equal(12, engine.Evaluate("Promise.race([12,2,3]);").UnwrapIfPromise().ToObject());
         }
 
         [Fact(Timeout = 5000)]
@@ -464,7 +464,7 @@ namespace Jint.Tests.Runtime
         {
             var engine = new Engine();
 
-            Assert.Equal(12d, engine.Evaluate("Promise.race([12,Promise.resolve(2),3]);").UnwrapIfPromise().ToObject());
+            Assert.Equal(12, engine.Evaluate("Promise.race([12,Promise.resolve(2),3]);").UnwrapIfPromise().ToObject());
         }
 
         [Fact(Timeout = 5000)]
@@ -472,7 +472,7 @@ namespace Jint.Tests.Runtime
         {
             var engine = new Engine();
 
-            Assert.Equal(2d, engine.Evaluate("Promise.race([Promise.resolve(2),6,3]);").UnwrapIfPromise().ToObject());
+            Assert.Equal(2, engine.Evaluate("Promise.race([Promise.resolve(2),6,3]);").UnwrapIfPromise().ToObject());
         }
 
         [Fact(Timeout = 5000)]
@@ -481,7 +481,7 @@ namespace Jint.Tests.Runtime
             var engine = new Engine();
             var res = engine.Evaluate("Promise.race([new Promise((resolve,reject)=>{}),Promise.resolve(55),3]);").UnwrapIfPromise();
 
-            Assert.Equal(55d, res.ToObject());
+            Assert.Equal(55, res.ToObject());
         }
 
         [Fact(Timeout = 5000)]

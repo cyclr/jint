@@ -2440,7 +2440,7 @@ namespace Jint.Tests.Runtime
 
             Assert.Equal("S1", result["supplier"]);
             Assert.Equal("Mike", result["Name"]);
-            Assert.Equal(20d, result["Age"]);
+            Assert.Equal(20, result["Age"]);
         }
 
         [Fact]

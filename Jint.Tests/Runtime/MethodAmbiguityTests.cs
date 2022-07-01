@@ -37,17 +37,17 @@ namespace Jint.Tests.Runtime
         {
             public string this[int index] => "int";
             public string this[string index] => "string";
-            public int TestMethod(double a, string b, double c) => 0;
-            public int TestMethod(double a, double b, double c) => 1;
-            public int TestMethod(TestClass a, string b, double c) => 2;
-            public int TestMethod(TestClass a, TestClass b, double c) => 3;
+            public int TestMethod(int a, string b, int c) => 0;
+            public int TestMethod(int a, int b, int c) => 1;
+            public int TestMethod(TestClass a, string b, int c) => 2;
+            public int TestMethod(TestClass a, TestClass b, int c) => 3;
             public int TestMethod(TestClass a, TestClass b, TestClass c) => 4;
-            public int TestMethod(TestClass a, double b, string c) => 5;
-            public int TestMethod(ChildTestClass a, double b, string c) => 6;
+            public int TestMethod(TestClass a, int b, string c) => 5;
+            public int TestMethod(ChildTestClass a, int b, string c) => 6;
             public int TestMethod(ChildTestClass a, string b, JsValue c) => 7;
 
-            public static implicit operator TestClass(double i) => new TestClass();
-            public static implicit operator double(TestClass tc) => 0;
+            public static implicit operator TestClass(int i) => new TestClass();
+            public static implicit operator int(TestClass tc) => 0;
             public static explicit operator string(TestClass tc) => "";
         }
 
