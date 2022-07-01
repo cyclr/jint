@@ -75,7 +75,20 @@ namespace Jint.Native
 
         public override object ToObject()
         {
+            var isAbs = System.Math.Abs(_value % 1) <= DoubleIsIntegerTolerance;
+
+            if (isAbs && _value is >= int.MinValue and <= int.MaxValue)
+            {
+                return (int) _value;
+            }
+
+            if (isAbs && _value is >= long.MinValue and <= long.MaxValue)
+            {
+                return (long) _value;
+            }
+
             return _value;
+
         }
 
         internal static JsNumber Create(object value)
