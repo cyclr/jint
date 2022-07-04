@@ -925,9 +925,15 @@ namespace Jint.Native.Object
                             object valueToSet = null;
                             if (!value.IsUndefined())
                             {
-                                valueToSet = value is ObjectInstance oi
-                                    ? oi.ToObject(stack)
-                                    : value.ToObject();
+                                if (value is ObjectInstance arrayObjectInstance)
+                                {
+                                    DetectSelfReferencingLoop(stack, arrayObjectInstance);
+                                    valueToSet = arrayObjectInstance.ToObject(stack);
+                                }
+                                else
+                                {
+                                    valueToSet = value.ToObject();
+                                }
                             }
                             result[i] = valueToSet;
                         }
@@ -992,10 +998,16 @@ namespace Jint.Native.Object
 
                         var key = p.Key.ToString();
                         var propertyValue = Get(p.Key, this);
-                        var value = propertyValue is ObjectInstance oi
-                            ? oi.ToObject(stack)
-                            : propertyValue.ToObject();
-                        o.Add(key, value);
+
+                        if (propertyValue is ObjectInstance oi)
+                        {
+                            DetectSelfReferencingLoop(stack, oi);
+                            o.Add(key, oi.ToObject(stack));
+                        }
+                        else
+                        {
+                            o.Add(key, propertyValue.ToObject());
+                        }
                     }
 
                     converted = o;
@@ -1007,6 +1019,20 @@ namespace Jint.Native.Object
 
             stack.Exit();
             return converted;
+        }
+
+        /// <summary>
+        /// Checks if the object instance already exists in the call stack.
+        /// If it exists, throws a self referencing loop exception.
+        /// </summary>
+        /// <param name="stack">Stack.</param>
+        /// <param name="objectInstance">Object instance to check.</param>
+        private void DetectSelfReferencingLoop(ObjectTraverseStack stack, ObjectInstance objectInstance)
+        {
+            if (stack.Contains(objectInstance))
+            {
+                ExceptionHelper.ThrowRecursionDepthOverflowException(_engine.CallStack, nameof(ToObject));
+            }
         }
 
         /// <summary>

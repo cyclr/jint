@@ -36,5 +36,7 @@ namespace Jint.Collections
         {
             _stack.Pop();
         }
+
+        public bool Contains(JsValue value) => _stack.Contains(value);
     }
 }

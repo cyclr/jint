@@ -2643,10 +2643,10 @@ namespace Jint.Tests.Runtime
             engine.Realm.GlobalObject.FastAddProperty("global", engine.Realm.GlobalObject, true, true, true);
             engine.Realm.GlobalObject.FastAddProperty("test", new DelegateWrapper(engine, (Action<string, object>) Test), true, true, true);
 
-            var ex = Assert.Throws<JavaScriptException>(() => engine.Realm.GlobalObject.ToObject());
-            Assert.Equal("Cyclic reference detected.", ex.Message);
+            var ex1 = Assert.Throws<RecursionDepthOverflowException>(() => engine.Realm.GlobalObject.ToObject());
+            Assert.Equal("The recursion is forbidden by script host.", ex1.Message);
 
-            ex = Assert.Throws<JavaScriptException>(() =>
+            var ex2 = Assert.Throws<RecursionDepthOverflowException>(() =>
                 engine.Execute(@"
                     var demo={};
                     demo.value=1;
@@ -2658,7 +2658,7 @@ namespace Jint.Tests.Runtime
                 )
             );
 
-            Assert.Equal("Cyclic reference detected.", ex.Message);
+            Assert.Equal("The recursion is forbidden by script host.", ex2.Message);
         }
 
         [Fact]
