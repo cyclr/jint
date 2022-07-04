@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace Jint.ObjectConverters
 {
-    internal class CyclrObjectConverter : IObjectConverter
+    public class CyclrObjectConverter : IObjectConverter
     {
         public bool TryConvert(Engine engine, object value, out JsValue result)
         {
